@@ -1,37 +1,49 @@
 using UnityEngine;
-//hejsan
+
 public class PlayerMovement : MonoBehaviour
 {
     public float moveSpeed = 5f;
+
+    private Rigidbody2D rb;
     private Animator animator;
+    private Vector2 movement;
 
     void Start()
     {
+        rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
     }
 
     void Update()
     {
-        float moveX = Input.GetAxisRaw("Horizontal");
-        float moveY = Input.GetAxisRaw("Vertical");
+        movement.x = Input.GetAxisRaw("Horizontal");
+        movement.y = Input.GetAxisRaw("Vertical");
 
-        Vector2 moveDirection = new Vector2(moveX, moveY);
-        transform.Translate(moveDirection.normalized * moveSpeed * Time.deltaTime);
+        movement = movement.normalized;
 
-        // walking check (simple and reliable)
-        bool isWalking = moveX != 0 || moveY != 0;
-        animator.SetBool("isWalking", isWalking);
+        UpdateAnimation(movement.x, movement.y);
+    }
 
-        if (isWalking)
+    void FixedUpdate()
+    {
+        rb.linearVelocity = movement * moveSpeed;
+    }
+
+    void UpdateAnimation(float moveX, float moveY)
+    {
+        if (Mathf.Abs(moveX) > 0.01f)
         {
-            if (moveX < 0)
-                animator.SetInteger("direction", 1); // left
-            else if (moveX > 0)
-                animator.SetInteger("direction", 2); // right
-            else
-                animator.SetInteger("direction", 0); // forward
+            animator.SetBool("isWalking", true);
+            animator.SetInteger("direction", moveX > 0 ? 2 : 1);
         }
-
-        Debug.Log($"Walking: {isWalking} | Dir: {animator.GetInteger("direction")}");
+        else if (Mathf.Abs(moveY) > 0.1f)
+        {
+            animator.SetBool("isWalking", true);
+            animator.SetInteger("direction", 0);
+        }
+        else
+        {
+            animator.SetBool("isWalking", false);
+        }
     }
 }
