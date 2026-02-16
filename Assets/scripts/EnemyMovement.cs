@@ -13,7 +13,7 @@ public class EnemyMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-        PickNewDirection();
+        PickDirection();
     }
 
     void Update()
@@ -21,9 +21,11 @@ public class EnemyMovement : MonoBehaviour
         changeTimer -= Time.deltaTime;
 
         if (changeTimer <= 0)
-            PickNewDirection();
+            PickDirection();
 
-        UpdateAnimation(movement.x, movement.y);
+        animator.SetFloat("dirX", movement.x);
+        animator.SetFloat("dirY", movement.y);
+        animator.SetFloat("speed", movement.magnitude);
     }
 
     void FixedUpdate()
@@ -31,27 +33,9 @@ public class EnemyMovement : MonoBehaviour
         rb.linearVelocity = movement * moveSpeed;
     }
 
-    void PickNewDirection()
+    void PickDirection()
     {
         movement = Random.insideUnitCircle.normalized;
         changeTimer = Random.Range(1f, 3f);
-    }
-
-    void UpdateAnimation(float moveX, float moveY)
-    {
-        if (Mathf.Abs(moveX) > 0.1f)
-        {
-            animator.SetBool("isWalking", true);
-            animator.SetInteger("direction", moveX > 0 ? 2 : 1);
-        }
-        else if (Mathf.Abs(moveY) > 0.1f)
-        {
-            animator.SetBool("isWalking", true);
-            animator.SetInteger("direction", 0);
-        }
-        else
-        {
-            animator.SetBool("isWalking", false);
-        }
     }
 }

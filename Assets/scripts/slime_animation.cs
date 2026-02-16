@@ -1,52 +1,71 @@
 using UnityEngine;
 
-public class SlimeAnimation : MonoBehaviour
+public class EnemyController : MonoBehaviour
 {
-    public float moveSpeed = 5f;
+    public float walkSpeed = 1.5f;
+    public float runSpeed = 3f;
+    public float directionChangeTime = 2f;
+
+    private Rigidbody2D rb;
     private Animator animator;
+
+    private Vector2 movement;
+    private float timer;
+
+    private bool isRunning;
 
     void Start()
     {
+        rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+
+        PickNewDirection();
     }
 
     void Update()
     {
-        MovePlayer();
+        timer -= Time.deltaTime;
+
+        if (timer <= 0f)
+            PickNewDirection();
+
+        float speed = isRunning ? 1f : 0.5f;
+
+        animator.SetFloat("dirX", movement.x);
+        animator.SetFloat("dirY", movement.y);
+        animator.SetFloat("speed", speed);
     }
 
-    void MovePlayer()
+    void FixedUpdate()
     {
-        float moveX = Input.GetAxis("Horizontal"); // A, D
-        float moveY = Input.GetAxis("Vertical");   // W, S
-
-        // Flytta spelkaraktären
-        Vector2 moveDirection = new Vector2(moveX, moveY).normalized;
-        transform.Translate(moveDirection * moveSpeed * Time.deltaTime);
-
-        // Hantera animationer
-        UpdateAnimation(moveX, moveY);
+        float moveSpeed = isRunning ? runSpeed : walkSpeed;
+        rb.linearVelocity = movement * moveSpeed;
     }
 
-    void UpdateAnimation(float moveX, float moveY)
+    void PickNewDirection()
     {
-        // Om spelaren rör sig horisontellt
-        if (Mathf.Abs(moveX) > 0.1f)
-        {
-            animator.SetBool("isWalking", true);
-            animator.SetInteger("direction", moveX > 0 ? 2 : 1); // 2 = right, 1 = left
-        }
-        // Om spelaren rör sig vertikalt men inte horisontellt
-        else if (Mathf.Abs(moveY) > 0.1f)
-        {
-            animator.SetBool("isWalking", true);
-            animator.SetInteger("direction", moveY > 0 ? 3 : 0); // 3 = up, 0 = down
-        }
-        else
-        {
-            // Idle
-            animator.SetBool("isWalking", false);
-            // direction stannar kvar, så du kan ha idle i samma riktning
-        }
+        movement = Random.insideUnitCircle.normalized;
+
+        isRunning = Random.value > 0.6f; // sometimes run
+
+        timer = directionChangeTime;
+    }
+
+    // OPTIONAL hooks for later combat system
+
+    public void Attack()
+    {
+        animator.SetBool("isAttacking", true);
+    }
+
+    public void Hurt()
+    {
+        animator.SetBool("isHurt", true);
+    }
+
+    public void Die()
+    {
+        animator.SetBool("isDead", true);
+        rb.linearVelocity = Vector2.zero;
     }
 }
