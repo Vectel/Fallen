@@ -1,28 +1,58 @@
 using UnityEngine;
 
-public class EnemyMovement : MonoBehaviour
+public class EnemyController : MonoBehaviour
 {
-    public float moveSpeed = 2f;
+    [Header("Speeds")]
+    public float walkSpeed = 2f;
+    public float runSpeed = 4f;
+
+    [Header("AI")]
+    public float directionChangeTime = 2f;
+    public float chaseRadius = 5f;
 
     private Rigidbody2D rb;
     private Animator animator;
-    private Vector2 movement;
-    private float changeTimer;
+    private Transform player;
 
-    void Start()
+    private Vector2 movement;
+    private float timer;
+    private bool isRunning;
+    private bool isChasing;
+
+    void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-        PickDirection();
+    }
+
+    void Start()
+    {
+        player = GameObject.FindWithTag("Player")?.transform;
+        PickNewDirection();
     }
 
     void Update()
     {
-        changeTimer -= Time.deltaTime;
+        if (player == null) return;
 
-        if (changeTimer <= 0)
-            PickDirection();
+        // Detect player
+        float dist = Vector2.Distance(transform.position, player.position);
+        isChasing = dist <= chaseRadius;
 
+        if (isChasing)
+        {
+            movement = (player.position - transform.position).normalized;
+            isRunning = true;
+        }
+        else
+        {
+            timer -= Time.deltaTime;
+
+            if (timer <= 0f)
+                PickNewDirection();
+        }
+
+        // Animate from movement vector (NOT velocity)
         animator.SetFloat("dirX", movement.x);
         animator.SetFloat("dirY", movement.y);
         animator.SetFloat("speed", movement.magnitude);
@@ -30,12 +60,20 @@ public class EnemyMovement : MonoBehaviour
 
     void FixedUpdate()
     {
-        rb.linearVelocity = movement * moveSpeed;
+        float speed = isRunning ? runSpeed : walkSpeed;
+        rb.MovePosition(rb.position + movement * speed * Time.fixedDeltaTime);
     }
 
-    void PickDirection()
+    void PickNewDirection()
     {
         movement = Random.insideUnitCircle.normalized;
-        changeTimer = Random.Range(1f, 3f);
+
+        if (movement == Vector2.zero)
+            movement = Vector2.right;
+
+        isRunning = Random.value > 0.6f;
+        timer = directionChangeTime;
     }
 }
+
+
