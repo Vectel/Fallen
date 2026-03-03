@@ -16,6 +16,7 @@ public class chest : MonoBehaviour, IInteractable
     public void Interact()
     {
        if (!CanInteract()) return;
+       openchest();
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -26,10 +27,13 @@ public class chest : MonoBehaviour, IInteractable
     
     private void openchest()
     {
+
+
         setopened(true);
         if(itemPrefab)
         {
             GameObject droppedItem =Istantiate(itemPrefab, transform.position + Vector3.down, Quaternion.identity);
+            droppedItem.getComponent<bounceEffect>().startBounce();
         }
     }
 
