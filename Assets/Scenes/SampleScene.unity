@@ -1904,6 +1904,7 @@ GameObject:
   - component: {fileID: 116574599}
   - component: {fileID: 116574604}
   - component: {fileID: 116574605}
+  - component: {fileID: 116574606}
   m_Layer: 0
   m_Name: EnemySlime
   m_TagString: Untagged
@@ -2028,7 +2029,7 @@ Transform:
   m_GameObject: {fileID: 116574598}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.2423, y: 0.8605, z: 0}
+  m_LocalPosition: {x: -0.001, y: 1.064, z: 0}
   m_LocalScale: {x: 2.5, y: 2.5, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2105,7 +2106,25 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 5
+  m_Radius: 1
+--- !u!114 &116574606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 116574598}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87449967638bf984db7181ea6ee8ecb8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
+  walkSpeed: 2
+  runSpeed: 2
+  idleTime: 0.5
+  wanderTime: 2
+  detectionRadius: 2
+  attackRadius: 1
 --- !u!1 &300661306
 GameObject:
   m_ObjectHideFlags: 0
@@ -3567,7 +3586,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1757bf77cb4ad443aab0372081c6a51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
-  moveSpeed: 1
+  moveSpeed: 3
 --- !u!50 &871572948
 Rigidbody2D:
   serializedVersion: 5
