@@ -2,22 +2,26 @@ using UnityEngine;
 
 public class EnemyController : MonoBehaviour
 {
+    public enum EnemyState { Idle, Wander, Chase, Attack }
+
     [Header("Speeds")]
     public float walkSpeed = 2f;
     public float runSpeed = 4f;
 
     [Header("AI")]
-    public float directionChangeTime = 2f;
-    public float chaseRadius = 5f;
+    public float idleTime = 1.5f;
+    public float wanderTime = 3f;
+    public float chaseRadius = 6f;
+    public float attackRadius = 1.2f;
+
+    private EnemyState currentState;
 
     private Rigidbody2D rb;
     private Animator animator;
     private Transform player;
 
     private Vector2 movement;
-    private float timer;
-    private bool isRunning;
-    private bool isChasing;
+    private float stateTimer;
 
     void Awake()
     {
@@ -28,31 +32,55 @@ public class EnemyController : MonoBehaviour
     void Start()
     {
         player = GameObject.FindWithTag("Player")?.transform;
-        PickNewDirection();
+        ChangeState(EnemyState.Idle);
     }
 
     void Update()
     {
         if (player == null) return;
 
-        // Detect player
-        float dist = Vector2.Distance(transform.position, player.position);
-        isChasing = dist <= chaseRadius;
+        float distance = Vector2.Distance(transform.position, player.position);
 
-        if (isChasing)
+        switch (currentState)
         {
-            movement = (player.position - transform.position).normalized;
-            isRunning = true;
-        }
-        else
-        {
-            timer -= Time.deltaTime;
+            case EnemyState.Idle:
+                stateTimer -= Time.deltaTime;
 
-            if (timer <= 0f)
-                PickNewDirection();
+                if (distance < chaseRadius)
+                    ChangeState(EnemyState.Chase);
+
+                if (stateTimer <= 0)
+                    ChangeState(EnemyState.Wander);
+                break;
+
+            case EnemyState.Wander:
+                stateTimer -= Time.deltaTime;
+
+                if (distance < chaseRadius)
+                    ChangeState(EnemyState.Chase);
+
+                if (stateTimer <= 0)
+                    ChangeState(EnemyState.Idle);
+                break;
+
+            case EnemyState.Chase:
+                movement = (player.position - transform.position).normalized;
+
+                if (distance < attackRadius)
+                    ChangeState(EnemyState.Attack);
+
+                if (distance > chaseRadius * 1.5f)
+                    ChangeState(EnemyState.Wander);
+                break;
+
+            case EnemyState.Attack:
+                movement = Vector2.zero;
+
+                if (distance > attackRadius)
+                    ChangeState(EnemyState.Chase);
+                break;
         }
 
-        // Animate from movement vector (NOT velocity)
         animator.SetFloat("dirX", movement.x);
         animator.SetFloat("dirY", movement.y);
         animator.SetFloat("speed", movement.magnitude);
@@ -60,20 +88,37 @@ public class EnemyController : MonoBehaviour
 
     void FixedUpdate()
     {
-        float speed = isRunning ? runSpeed : walkSpeed;
+        float speed = walkSpeed;
+
+        if (currentState == EnemyState.Chase)
+            speed = runSpeed;
+
         rb.MovePosition(rb.position + movement * speed * Time.fixedDeltaTime);
     }
 
-    void PickNewDirection()
+    void ChangeState(EnemyState newState)
     {
-        movement = Random.insideUnitCircle.normalized;
+        currentState = newState;
 
-        if (movement == Vector2.zero)
-            movement = Vector2.right;
+        switch (newState)
+        {
+            case EnemyState.Idle:
+                movement = Vector2.zero;
+                stateTimer = idleTime;
+                break;
 
-        isRunning = Random.value > 0.6f;
-        timer = directionChangeTime;
+            case EnemyState.Wander:
+                movement = Random.insideUnitCircle.normalized;
+                stateTimer = wanderTime;
+                break;
+
+            case EnemyState.Chase:
+                break;
+
+            case EnemyState.Attack:
+                movement = Vector2.zero;
+                break;
+        }
     }
 }
-
 
